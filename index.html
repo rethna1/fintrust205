@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan vs SIP Early Closure Calculator</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  font-family: Arial;
+  background:#f4f6f9;
+  padding:15px;
+  margin:0;
+}
+
+h2{text-align:center;}
+
+.card{
+  background:#fff;
+  padding:15px;
+  border-radius:8px;
+  margin-bottom:15px;
+  box-shadow:0 2px 6px rgba(0,0,0,0.1);
+}
+
+label{
+  font-weight:bold;
+  display:block;
+  margin-top:10px;
+}
+
+input{
+  width:100%;
+  height:48px;
+  padding:10px;
+  margin-top:5px;
+  border-radius:8px;
+  border:2px solid #ccc;
+  font-size:16px;
+  box-sizing:border-box;
+  outline:none;
+}
+
+input:focus{
+  border-color:#0a7cff;
+}
+
+button{
+  width:100%;
+  padding:12px;
+  margin-top:10px;
+  border:none;
+  border-radius:6px;
+  font-weight:bold;
+}
+
+.calc{background:#0a7cff;color:#fff;}
+.share{background:#25D366;color:#fff;}
+
+.result{
+  background:#eef5ff;
+  padding:15px;
+  border-radius:8px;
+  margin-top:15px;
+  line-height:1.7;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+  font-size:13px;
+}
+
+th, td{
+  border:1px solid #ccc;
+  padding:6px;
+  text-align:center;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Loan vs SIP Early Closure</h2>
+
+<div class="card">
+
+<h3>Loan Details</h3>
+
+<label>Loan Amount (Rs)</label>
+<input type="number" id="loan" value="5000000">
+
+<label>Interest Rate (%)</label>
+<input type="number" id="rate" value="7.5">
+
+<label>Loan Tenure (Years)</label>
+<input type="number" id="tenure" value="20">
+
+<label>Monthly EMI (Rs)</label>
+<input type="number" id="emi" value="40000">
+
+<h3>SIP Strategy</h3>
+
+<label>Monthly SIP (Rs)</label>
+<input type="number" id="sip" value="12000">
+
+<label>Expected Return (%)</label>
+<input type="number" id="return" value="12">
+
+<label>Step-up (% yearly)</label>
+<input type="number" id="stepup" value="3">
+
+<label>Target Years</label>
+<input type="number" id="target" value="10">
+
+<button class="calc" onclick="calculate()">Calculate Strategy</button>
+<button class="share" onclick="share()">Share WhatsApp</button>
+
+</div>
+
+<div class="result" id="result"></div>
+
+<canvas id="chart"></canvas>
+
+<div class="result" id="analysis"></div>
+<div id="table"></div>
+
+<script>
+
+let chart;
+let summaryText="";
+
+function format(n){
+  return "Rs " + Math.round(n).toLocaleString("en-IN");
+}
+
+function calculate(){
+
+let loan = +document.getElementById("loan").value;
+let annualRate = +document.getElementById("rate").value;
+let r = annualRate/100/12;
+let tenureMonths = +document.getElementById("tenure").value*12;
+let emiVal = +document.getElementById("emi").value;
+
+let sipVal = +document.getElementById("sip").value;
+let initialSip = sipVal;
+
+let sipRate = +document.getElementById("return").value/100/12;
+let stepupVal = +document.getElementById("stepup").value/100;
+let targetYears = +document.getElementById("target").value;
+
+let balance = loan;
+let sipValue = 0;
+
+let balances = [];
+let sipValues = [];
+let labels = [];
+
+/* MAIN CALC */
+
+for(let y=1; y<=targetYears; y++){
+
+  for(let m=1; m<=12; m++){
+
+    let interest = balance * r;
+    let principal = emiVal - interest;
+
+    balance -= principal;
+    if(balance<0) balance=0;
+
+    sipValue = (sipValue + sipVal) * (1 + sipRate);
+  }
+
+  sipVal = sipVal * (1 + stepupVal);
+
+  balances.push(balance);
+  sipValues.push(sipValue);
+  labels.push("Year "+y);
+}
+
+let finalLoan = balance;
+let finalSIP = sipValue;
+let status = finalSIP >= finalLoan ? "YES" : "NO";
+let diff = finalSIP - finalLoan;
+
+/* RESULT */
+
+document.getElementById("result").innerHTML=
+
+"<b>Loan Outstanding after "+targetYears+" yrs</b><br>"+format(finalLoan)+"<br><br>"+
+
+"<b>SIP Value after "+targetYears+" yrs</b><br>"+format(finalSIP)+"<br><br>"+
+
+"<b>Can Close Loan?</b><br>"+status+"<br><br>"+
+
+"<b>Surplus / Shortfall</b><br>"+format(diff)+"<br><br>"+
+
+"<b>Smart Insight</b><br>"+
+"If SIP return exceeds loan interest, wealth may grow faster than debt reduces<br><br>"+
+
+"<b>Disclaimer</b><br>"+
+"Returns are market dependent";
+
+/* CHART */
+
+if(chart) chart.destroy();
+
+chart = new Chart(document.getElementById("chart"),{
+type:"line",
+data:{
+labels:labels,
+datasets:[
+{label:"Loan Balance",data:balances,borderWidth:2},
+{label:"SIP Value",data:sipValues,borderWidth:2}
+]
+}
+});
+
+/* DETAILED ANALYSIS */
+
+let balance2 = loan;
+let sip2 = initialSip;
+let sipVal2 = 0;
+
+let tableHTML = "<h3>Total Loan vs SIP Analysis</h3>";
+tableHTML += "<table><tr><th>Year</th><th>Interest</th><th>Principal</th><th>Loan Balance</th><th>SIP Value</th></tr>";
+
+let crossoverYear = "Not reached";
+
+for(let y=1; y<=targetYears; y++){
+
+  let yearlyInterest = 0;
+  let yearlyPrincipal = 0;
+
+  for(let m=1; m<=12; m++){
+
+    let interest = balance2 * r;
+    let principal = emiVal - interest;
+
+    balance2 -= principal;
+    if(balance2<0) balance2=0;
+
+    yearlyInterest += interest;
+    yearlyPrincipal += principal;
+
+    sipVal2 = (sipVal2 + sip2) * (1 + sipRate);
+  }
+
+  sip2 = sip2 * (1 + stepupVal);
+
+  if(sipVal2 >= balance2 && crossoverYear==="Not reached"){
+    crossoverYear = y;
+  }
+
+  tableHTML += "<tr>"+
+  "<td>"+y+"</td>"+
+  "<td>"+format(yearlyInterest)+"</td>"+
+  "<td>"+format(yearlyPrincipal)+"</td>"+
+  "<td>"+format(balance2)+"</td>"+
+  "<td>"+format(sipVal2)+"</td>"+
+  "</tr>";
+}
+
+tableHTML += "</table>";
+
+document.getElementById("analysis").innerHTML =
+"<b>Total Loan vs SIP Analysis</b><br><br>"+
+"Loan Remaining: "+format(finalLoan)+"<br>"+
+"SIP Value: "+format(finalSIP)+"<br>"+
+"Crossover Year: "+crossoverYear+"<br><br>"+
+"<b>Explanation:</b><br>"+
+"Initial EMI goes mostly towards interest.<br>"+
+"SIP grows slowly first but accelerates later.<br>"+
+"When SIP exceeds loan, early closure becomes possible.";
+
+document.getElementById("table").innerHTML = tableHTML;
+
+/* WHATSAPP */
+
+summaryText =
+"Loan vs SIP Early Closure Report\n\n"+
+
+"Loan Amount: Rs "+loan.toLocaleString("en-IN")+"\n"+
+"Interest Rate: "+annualRate+" percent\n"+
+"EMI: Rs "+emiVal.toLocaleString("en-IN")+"\n"+
+"Tenure: "+(tenureMonths/12)+" years\n\n"+
+
+"Monthly SIP: Rs "+initialSip.toLocaleString("en-IN")+"\n"+
+"Return: "+document.getElementById("return").value+" percent\n"+
+"Step-up: "+document.getElementById("stepup").value+" percent\n\n"+
+
+"After "+targetYears+" Years\n"+
+"Loan Balance: Rs "+Math.round(finalLoan).toLocaleString("en-IN")+"\n"+
+"SIP Value: Rs "+Math.round(finalSIP).toLocaleString("en-IN")+"\n"+
+"Difference: Rs "+Math.round(diff).toLocaleString("en-IN")+"\n\n"+
+
+"Early Closure Possible: "+status+"\n"+
+"Crossover Year: "+crossoverYear+"\n\n"+
+
+"FinTrust MF Distribution\n8590858767";
+
+}
+
+function share(){
+if(!summaryText){
+alert("Please calculate first");
+return;
+}
+window.open("https://wa.me/?text="+encodeURIComponent(summaryText),'_blank');
+}
+
+</script>
+
+</body>
+</html>
