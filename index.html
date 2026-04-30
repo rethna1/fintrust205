@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
+
+<div class="brand-row">
+    <div class="logo-circle">
+        <div class="logo-text">
+            <div class="fc">FC</div>
+            <div class="line1">FINTRUST</div>
+            <div class="line2">CREATIONS</div>
+        </div>
+    </div>
+
+    <h2 class="brand-title">FinTrust Creations</h2>
+</div>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Loan vs SIP Early Closure Calculator</title>
@@ -79,6 +92,85 @@ th, td{
   padding:6px;
   text-align:center;
 }
+
+/* FOOTER */
+.ft-footer{
+    margin-top:30px;
+    padding:15px;
+    background:#f5f5f5;
+    font-size:13px;
+}
+
+/* JUSTIFIED DISCLAIMER */
+.ft-disclaimer{
+    text-align: justify;
+    color:#555;
+    line-height:1.6;
+}
+
+/* COPYRIGHT */
+.ft-copy{
+    text-align:center;
+    margin-top:10px;
+    font-weight:600;
+}
+
+.brand-row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin:15px 0;
+}
+
+/* LOGO CIRCLE */
+.logo-circle{
+    width:48px;
+    height:48px;
+    background:#1aa179;
+    border-radius:50%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+}
+
+/* LOGO TEXT */
+.logo-text{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    color:#fff;
+}
+
+/* FC */
+.logo-text .fc{
+    font-size:14px;
+    font-weight:bold;
+    line-height:1;
+}
+
+/* FINTRUST */
+.logo-text .line1{
+    font-size:6px;
+    line-height:1;
+    margin:0;
+}
+
+/* CREATIONS */
+.logo-text .line2{
+    font-size:6px;
+    line-height:1;
+    margin:0;
+}
+
+/* HEADING */
+.brand-title{
+    font-size:22px;
+    margin:0;
+    color:#2c3e50;
+    font-weight:600;
+}
+
 </style>
 </head>
 
@@ -312,6 +404,22 @@ return;
 window.open("https://wa.me/?text="+encodeURIComponent(summaryText),'_blank');
 }
 
+</script>
+
+<!-- FOOTER -->
+<div class="ft-footer">
+    <p class="ft-disclaimer">
+        Disclaimer: This calculator is for educational and illustrative purposes only. 
+        Mutual fund investments are subject to market risks. Please consult your financial advisor before investing.
+    </p>
+
+    <p class="ft-copy">
+        © <span id="year"></span> FinTrust Creations. All Rights Reserved.
+    </p>
+</div>
+
+<script>
+document.getElementById("year").textContent = new Date().getFullYear();
 </script>
 
 </body>
