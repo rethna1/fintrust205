@@ -317,7 +317,7 @@ function requiredStepUpSIP(years, loan, rate, emi, sipReturn, stepup){
 }
 
 function calculate(){
-
+let crossoverYear = "Not reached";
 let loan = +document.getElementById("loan").value;
 let annualRate = +document.getElementById("rate").value;
 let r = annualRate/100/12;
@@ -354,7 +354,9 @@ for(let y=1;y<=targetYears;y++){
   }
 
   sipVal*= (1+stepupVal);
-
+if(sipValue >= balance && crossoverYear === "Not reached"){
+  crossoverYear = y;
+}
   balances.push(balance);
   sipValues.push(sipValue);
   labels.push("Year "+y);
@@ -370,7 +372,7 @@ let diff = finalSIP - finalLoan;
 document.getElementById("result").innerHTML =
 "<b>Loan Outstanding after "+targetYears+" yrs</b><br>"+format(finalLoan)+"<br><br>"+
 "<b>SIP Value after "+targetYears+" yrs</b><br>"+format(finalSIP)+"<br><br>"+
-"<b>Can Close Loan?</b><br>"+status+"<br><br>"+
+"<b>Can Close Loan?</b><br>"+status+"<br><br>"+ "<b>Crossover Year</b><br>"+crossoverYear+"<br><br>"+
 "<b>Surplus / Shortfall</b><br>"+format(diff);
 
 /* CHART */
@@ -499,6 +501,7 @@ year2+" Years\n"+
 
 "IMPORTANT NOTE\n"+
 "Returns are market dependent and not guaranteed.\n\n"+
+"Crossover Year: "+crossoverYear+"\n\n"+
 
 "FinTrust MF Distribution\n8590858767";
 
